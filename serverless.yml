@@ -12,14 +12,23 @@ provider:
   lambdaHashingVersion: 20201221
   stage: ${opt:stage, 'dev'}
   region: ${opt:region, 'us-east-2'}
+
   environment:
     TODOS_TABLE: Todos-${self:provider.stage}
+    MEDIA_S3_BUCKET: todo-${self:provider.stage}-866937819247
+    SIGNED_URL_AGE: 300
+
   iamRoleStatements:
     - Effect: Allow
       Action:
         - dynamodb:Scan
         - dynamodb:PutItem
       Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+    - Effect: Allow
+      Action:
+        - s3:PutObject
+        - s3:GetObject
+      Resource: 'arn:aws:s3:::${self:provider.environment.MEDIA_S3_BUCKET}/*'
 
 #############################################################################
 custom:
@@ -82,3 +91,34 @@ resources:
         KeySchema:
           - AttributeName: id
             KeyType: HASH
+    
+    TodoBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: ${self:provider.environment.MEDIA_S3_BUCKET}
+        CorsConfiguration:
+          CorsRules:
+            - AllowedMethods:
+                - GET
+                - POST
+                - DELETE
+                - PUT
+                - HEAD
+              AllowedOrigins:
+                - '*'
+              AllowedHeaders:
+                - '*'
+              MaxAge: ${self:provider.environment.SIGNED_URL_AGE}
+
+    BucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: !Ref TodoBucket
+        PolicyDocument:
+            Id: TodoBucketPolicy
+            Statement:
+              - Sid: PublicReadForGetBucketObjects
+                Effect: Allow
+                Principal: '*'
+                Action: 's3:GetObject'
+                Resource: 'arn:aws:s3:::${self:provider.environment.MEDIA_S3_BUCKET}/*'
