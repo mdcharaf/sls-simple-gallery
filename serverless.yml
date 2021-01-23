@@ -1,4 +1,4 @@
-service: todo
+service: gallery
 frameworkVersion: '2'
 
 plugins:
@@ -14,8 +14,8 @@ provider:
   region: ${opt:region, 'us-east-2'}
 
   environment:
-    TODOS_TABLE: Todos-${self:provider.stage}
-    MEDIA_S3_BUCKET: todo-${self:provider.stage}-866937819247
+    GALLERY_TABLE: gallery-${self:provider.stage}
+    MEDIA_S3_BUCKET: gallery-${self:provider.stage}-866937819247
     SIGNED_URL_AGE: 300
 
   iamRoleStatements:
@@ -23,7 +23,7 @@ provider:
       Action:
         - dynamodb:Scan
         - dynamodb:PutItem
-      Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.TODOS_TABLE}
+      Resource: arn:aws:dynamodb:${self:provider.region}:*:table/${self:provider.environment.GALLERY_TABLE}
     - Effect: Allow
       Action:
         - s3:PutObject
@@ -36,36 +36,36 @@ custom:
     api:
       info:
         version: v1.0.0
-        title: todo api
-        description: simple to do list app
+        title: gallery api
+        description: simple gallery app
     models:
-      - name: TodoRequest
+      - name: galleryRequest
         contentType: application/json
-        schema: ${file(models/create-todo-request.json)}
+        schema: ${file(models/create-gallery-request.json)}
 
 #############################################################################
 functions:
-  getTodos: 
-    handler: src/lambda/http/getTodos.handler
+  getGallery: 
+    handler: src/lambda/http/getGallery.handler
     events:
       - http:
           method: get
-          path: todos
+          path: gallery
           cors: true
 
-  createTodo: 
-    handler: src/lambda/http/createTodo.handler
+  createGallery: 
+    handler: src/lambda/http/createGallery.handler
     events:
       - http:
           method: post
-          path: todos
+          path: gallery
           cors: true
           reqValidatorName: RequestValidator
           documentation:
-            summary: create new todo 
-            description: create new todo
+            summary: create new gallery 
+            description: create new gallery
             requestModels:
-              'application/json': TodoRequest
+              'application/json': galleryRequest
 
 ##########################################################
 resources:
@@ -80,10 +80,10 @@ resources:
         ValidateRequestBody: true
         ValidateRequestParameters: false
 
-    TodosDynamoDbTable:
+    GalleryDynamoDbTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:provider.environment.TODOS_TABLE}
+        TableName: ${self:provider.environment.GALLERY_TABLE}
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
           - AttributeName: id
@@ -92,7 +92,7 @@ resources:
           - AttributeName: id
             KeyType: HASH
     
-    TodoBucket:
+    galleryBucket:
       Type: AWS::S3::Bucket
       Properties:
         BucketName: ${self:provider.environment.MEDIA_S3_BUCKET}
@@ -113,9 +113,9 @@ resources:
     BucketPolicy:
       Type: AWS::S3::BucketPolicy
       Properties:
-        Bucket: !Ref TodoBucket
+        Bucket: !Ref galleryBucket
         PolicyDocument:
-            Id: TodoBucketPolicy
+            Id: galleryBucketPolicy
             Statement:
               - Sid: PublicReadForGetBucketObjects
                 Effect: Allow

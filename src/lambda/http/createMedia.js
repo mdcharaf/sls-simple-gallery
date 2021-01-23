@@ -3,7 +3,7 @@
 const AWS = require('aws-sdk');
 const uuid = require('uuid');
 const dbContext = new AWS.DynamoDB.DocumentClient();
-const todosTable = process.env.TODOS_TABLE;
+const galleryTable = process.env.GALLERY_TABLE;
 
 exports.handler = async (event) => {
   console.log('Processing event:', event);
@@ -20,7 +20,7 @@ exports.handler = async (event) => {
   };
 
   await dbContext.put({
-    TableName: todosTable,
+    TableName: galleryTable,
     Item: item
   }).promise();
 

@@ -2,13 +2,13 @@
 
 const AWS = require('aws-sdk');
 const dbContext = new AWS.DynamoDB.DocumentClient();
-const listsTable = process.env.TODOS_TABLE;
+const tableName = process.env.GALLERY_TABLE;
 
 exports.handler = async (event) => {
   console.log('Processing event:', event);
 
   const result = await dbContext.scan({
-    TableName: listsTable
+    TableName: tableName
   }).promise();
 
   return {
